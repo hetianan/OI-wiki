@@ -542,6 +542,93 @@ $w(s,p_1)+w(p_1,p_2)+ \dots +w(p_k,t)+h_s-h_t$
 
 这样，我们就证明了 Johnson 算法的正确性。
 
+### 代码
+
+???+note "代码实现" [^3]
+    ```cpp
+    // C++ Version
+    struct edge {
+    	int v, w, next;
+    } e[10005];
+    struct node {
+    	int dis, id;
+    	bool operator<(const node& a) const {
+	    	return dis > a.dis;
+	    }
+	    node(int d, int x) {
+	    	dis = d, id = x;
+	    }
+    };
+    int head[5005], vis[5005], t[5005];
+    int cnt, n, m;
+    long long h[5005], dis[5005];
+    void addedge(int u, int v, int w) {
+    	e[++cnt].v = v;
+    	e[cnt].w = w;
+    	e[cnt].next = head[u];
+    	head[u] = cnt;
+    }
+    bool spfa(int s) {
+	    queue<int> q;
+	    memset(h, 63, sizeof(h));
+	    h[s] = 0, vis[s] = 1;
+	    q.push(s);
+	    while (!q.empty()) {
+	    	int u = q.front();
+	    	q.pop();
+	    	vis[u] = 0;
+		    for (int i = head[u]; i; i = e[i].next) {
+		    	int v = e[i].v;
+		    	if (h[v] > h[u] + e[i].w) {
+		    		h[v] = h[u] + e[i].w;
+		    		if (!vis[v]) {
+		    			vis[v] = 1;
+			    		q.push(v);
+			    		t[v]++;
+			    		if (t[v] == n + 1) return false;
+			    	}
+			    }
+	    	}
+	    }
+	    return true;
+    }
+    void dijkstra(int s) {
+	    priority_queue<node> q;
+	    for (int i = 1; i <= n; i++) dis[i] = INF;
+    	memset(vis, 0, sizeof(vis));
+    	dis[s] = 0;
+    	q.push(node(0, s));
+    	while (!q.empty()) {
+	    	int u = q.top().id;
+	    	q.pop();
+	    	if (vis[u]) continue;
+	    	vis[u] = 1;
+	    	for (int i = head[u]; i; i = e[i].next) {
+		    	int v = e[i].v;
+		    	if (dis[v] > dis[u] + e[i].w) {
+		    		dis[v] = dis[u] + e[i].w;
+		    		if (!vis[v]) q.push(node(dis[v], v));
+		    	}
+	    	}
+	    }
+	    return;
+    }
+    int main() {
+			/*输入*/
+			if (!spfa(0)) {
+				cout << /* 有负环 */ << endl;
+				return 0;
+			}
+			for (int u = 1; u <= n; u++)
+				for (int i = head[u]; i; i = e[i].next) e[i].w += h[u] - h[e[i].v];
+			for (int i = 1; i <= n; i++)
+				dijkstra(i);
+			/*输出*/
+			return 0;
+		}
+    ```
+
+
 * * *
 
 ## 不同方法的比较
@@ -567,3 +654,5 @@ $w(s,p_1)+w(p_1,p_2)+ \dots +w(p_k,t)+h_s-h_t$
 [^1]: [Worst case of fibonacci heap - Wikipedia](https://en.wikipedia.org/wiki/Fibonacci_heap#Worst_case)
 
 [^2]: 《算法导论（第 3 版中译本）》，机械工业出版社，2013 年，第 384 - 385 页。
+
+[^3]: [代码来源](https://studyingfather.blog.luogu.org/johnson-algorithm)
